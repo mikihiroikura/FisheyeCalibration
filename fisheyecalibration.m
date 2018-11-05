@@ -83,6 +83,21 @@ diffHeights = Heights - min(Heights);
 diffHeights = sort(diffHeights);
 diffTrueHeights = TrueHeights- min(TrueHeights);
 diffTrueHeights = sort(diffTrueHeights);
+
+%%
+%csvへカメラパラメータ群の出力
+csvfile ='cameraparams.csv';
+fid = fopen(csvfile,'w');
+fprintf(fid,'%f,',params.Intrinsics.MappingCoefficients);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.StretchMatrix);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.DistortionCenter);
+fprintf(fid,'\n');
+%csvへレーザー平面パラメータの出力
+fprintf(fid,'%f,',Sol);
+fprintf(fid,'\n');
+fclose(fid);
 %%
 %高度推定精度グラフの表示
 f =figure;

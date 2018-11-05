@@ -23,22 +23,6 @@ params = estimateFisheyeParameters(imagePoints,CheckboardworldPoints,imageSize);
 images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\HighSpeedCamera\sample\PhotoCapture\Photos\Laser_on");
 
 %%
-%1枚画像をとってくる
-% J = readimage(images_on,1);
-% 
-% %%
-% %輝度重心の計算
-% [X,Y] = calcCoG(J);
-% CoGPoints = [X,Y];
-% %%
-% %ワールド座標系に変換
-% worldPoints = pointsToWorld(params.Intrinsics,params.RotationMatrices(:,:,1),params.TranslationVectors(1,:),CoGPoints);
-% newworldPoints = [worldPoints,zeros(size(worldPoints,1),1)];
-% 
-% %%
-% %カメラ座標系に変換
-% cameraPoints = newworldPoints*params.RotationMatrices(:,:,1).'+params.TranslationVectors(1,:);
-%%
 %すべての画像からレーザー平面のカメラ座標系の計算を行う
 All_cameraPoints = [];
 for i = 1:size(images_on.Files,1)
@@ -89,7 +73,7 @@ scatter3(Xcs,Ycs,Zcs);
 Heights = [];
 TrueHeights = [];
 erasestr = ["C:\Users\Mikihiro Ikura\Documents\GitHub\HighSpeedCamera\sample\PhotoCapture\Photos\Laser_off\picure","mm.jpg"];
-for i =1:15
+for i =1:15%今回は15枚分の画像が高度情報持ちの画像なので
     camOri = -params.TranslationVectors(i,:)*params.RotationMatrices(:,:,i)^-1;
     Heights = [Heights;-camOri(3)];
     str = images.Files{i,1};
@@ -99,6 +83,19 @@ diffHeights = Heights - min(Heights);
 diffHeights = sort(diffHeights);
 diffTrueHeights = TrueHeights- min(TrueHeights);
 diffTrueHeights = sort(diffTrueHeights);
+
+%%
+%csvへカメラパラメータ群の出力
+csvfile ='cameraparams.csv';
+fid = fopen(csvfile,'w');
+fprintf(fid,'%f,',params.Intrinsics.MappingCoefficients);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.StretchMatrix);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.DistortionCenter);
+fprintf(fid,'\n');
+%csvへレーザー平面パラメータの出力
+fprintf(fid,'%f,',params.Intrinsics.DistortionCenter);
 %%
 %高度推定精度グラフの表示
 f =figure;
@@ -110,6 +107,4 @@ legend('True','Estimate');
 g = figure;
 plot(no,diffTrueHeights-diffHeights,'g-o');
 legend('True-Estimate');
-%%
-%画像見る
-imshow(J);
+

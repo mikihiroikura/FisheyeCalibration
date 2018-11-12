@@ -1,6 +1,6 @@
 %%
 %画像データをまとめる
-images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\HighSpeedCamera\sample\PhotoCapture\Photos\Laser_off");
+images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_off");
 
 %%
 %画像中のチェッカーボードの点を検出
@@ -20,7 +20,7 @@ params = estimateFisheyeParameters(imagePoints,CheckboardworldPoints,imageSize);
 
 %%
 % レーザーありの画像データ群を読み取る
-images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\HighSpeedCamera\sample\PhotoCapture\Photos\Laser_on");
+images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_on");
 
 %%
 %すべての画像からレーザー平面のカメラ座標系の計算を行う
@@ -83,21 +83,6 @@ diffHeights = Heights - min(Heights);
 diffHeights = sort(diffHeights);
 diffTrueHeights = TrueHeights- min(TrueHeights);
 diffTrueHeights = sort(diffTrueHeights);
-
-%%
-%csvへカメラパラメータ群の出力
-csvfile ='cameraparams.csv';
-fid = fopen(csvfile,'w');
-fprintf(fid,'%f,',params.Intrinsics.MappingCoefficients);
-fprintf(fid,'\n');
-fprintf(fid,'%f,',params.Intrinsics.StretchMatrix);
-fprintf(fid,'\n');
-fprintf(fid,'%f,',params.Intrinsics.DistortionCenter);
-fprintf(fid,'\n');
-%csvへレーザー平面パラメータの出力
-fprintf(fid,'%f,',Sol);
-fprintf(fid,'\n');
-fclose(fid);
 %%
 %高度推定精度グラフの表示
 f =figure;
@@ -109,4 +94,19 @@ legend('True','Estimate');
 g = figure;
 plot(no,diffTrueHeights-diffHeights,'g-o');
 legend('True-Estimate');
-
+%%
+%csvへカメラパラメータ群の出力
+csvfile ='cameraparams.csv';
+fid = fopen(csvfile,'w');
+fprintf(fid,'%f,',params.Intrinsics.MappingCoefficients);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.StretchMatrix);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.Intrinsics.DistortionCenter);
+fprintf(fid,'\n');
+fprintf(fid,'%f,',params.RotationMatrices(:,:,1));
+fprintf(fid,'\n');
+%csvへレーザー平面パラメータの出力
+fprintf(fid,'%f,',Sol);
+fprintf(fid,'\n');
+fclose(fid);

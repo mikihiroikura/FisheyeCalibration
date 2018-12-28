@@ -1,9 +1,9 @@
-function [X,Y] = calcCoG(J,I,xmin,xmax)
+function [X,Y] = calcCoG(J,I)
 %calcCoG 入力画像の一部の輝度重心の計算
 %   詳細説明をここに記述
     BW = imbinarize(J,I);%0-1の間のパラメータでバイナリ化(0:0-1:255)
     BWsize = [size(BW,1),size(BW,2)];
-    rows = [xmin xmax];%ここで処理する行を指定する
+    rows = [0 10];%ここで処理する行を指定する
     cols = [1 BWsize(2)];
     rect = [cols(1) rows(1) cols(2) rows(2)-rows(1)];
     % 2値化×元の画像にして，行ごとの輝度重心をとる
@@ -20,4 +20,3 @@ function [X,Y] = calcCoG(J,I,xmin,xmax)
     Y = double(Ytrim+rows(1)-1);
     X = moments./mass;
 end
-

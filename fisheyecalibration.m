@@ -4,7 +4,7 @@ clear all
 close all
 %%
 %画像データをまとめる
-images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_off");
+images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\old\Laser_off");
 
 %%
 %画像中のチェッカーボードの点を検出
@@ -24,16 +24,25 @@ params = estimateFisheyeParameters(imagePoints,CheckboardworldPoints,imageSize);
 
 %%
 % レーザーありの画像データ群を読み取る
-images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_on");
+images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\old\Laser_on");
+
+%%
+%棒にあたるレーザー点の出力をするフラグの設定
+%0：OFF，1:ON
+bar_on = 0;
 
 %%
 %すべての画像からレーザー平面のカメラ座標系の計算を行う
 All_cameraPoints = [];
+if bar_on==1
+   All_barPixelPoints = []; 
+end
 for i = 1:size(images_on.Files,1)
     %画像の読み込み
     J = readimage(images_on,i);
+    %%%%%%%%CheckerboardにあたるLaserの処理%%%%%%%%
     %輝度重心の計算
-    [X,Y] = calcCoG(J);
+    [X,Y] = calcCoG(J,0.18,100,300);
     CoGPoints = [X,Y];
     %ワールド座標系に変換
     worldPoints = pointsToWorld(params.Intrinsics,params.RotationMatrices(:,:,i),params.TranslationVectors(i,:),CoGPoints);
@@ -41,23 +50,23 @@ for i = 1:size(images_on.Files,1)
     %カメラ座標系に変換
     cameraPoints = newworldPoints*params.RotationMatrices(:,:,i)+params.TranslationVectors(i,:);
     All_cameraPoints = [All_cameraPoints;cameraPoints];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if bar_on ==1
+    %%%%%%%%%棒にあたるレーザー点の処理%%%%%%%%%%%%%%%%%%%%%
+        %輝度重心の計算
+        [Xbar,Ybar] = calcCoG(J,0.18,0,10);
+        BarPixelPoints = [mean(X),mean(Y)];
+        All_barPixelPoints = [All_barPixelPoints;BarPixelPoints];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    end
+    
 end
 %%
 %レーザーが作る平面z=ax+by+cの最小2乗平面を計算する
 Sol = CalcLMSPlane(All_cameraPoints);
 %%
 %外れ値の検出とそれを省いた平面の式の計算
-thr = 3;
-Optimal_cameraPoints = [];
-n = [Sol(1),Sol(2),-1];
-p = [0,0,Sol(3)];
-for i=1:size(All_cameraPoints,1)
-    diffvec = All_cameraPoints(i,:)-p;
-    dist = abs(dot(diffvec,n));
-    if dist<thr
-        Optimal_cameraPoints = [Optimal_cameraPoints;All_cameraPoints(i,:)];
-    end
-end
+Optimal_cameraPoints = PlaneOptimization(Sol,All_cameraPoints,3);
 Sol2 = CalcLMSPlane(Optimal_cameraPoints);
 
 %%
@@ -124,6 +133,12 @@ end
 %csvへレーザー平面パラメータの出力
 fprintf(fid,'%f,',Sol2);
 fprintf(fid,'\n');
+%棒に映るレーザー点@pixel座標系の出力
+if bar_on ==1
+    BP = mean(All_barPixelPoints,1);
+    fprintf(fid,'%f,',BP);
+    fprintf(fid,'\n');
+end
 fclose(fid);
 
 %%

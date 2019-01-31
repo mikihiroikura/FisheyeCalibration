@@ -4,11 +4,11 @@ clear all
 close all
 %%
 %Laserなしの画像データの保存
-images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_off");
+images = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_off1");
 
 %%
 %Laserありの画像データ群１の呼び出し
-images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_on");
+images_on = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_on1");
 %%
 %Laserなしの画像データ2の保存
 images2 = imageDatastore("C:\Users\Mikihiro Ikura\Documents\GitHub\FisheyeCalibration\Photos\Laser_off2");
@@ -33,6 +33,7 @@ params = estimateFisheyeParameters(imagePoints,CheckboardworldPoints,imageSize);
 %%
 %棒に映る輝点群の格納
 All_barPixelPoints = [];
+%%
 All_barCameraPoints = [];
 %%
 %レーザー画像群１から平面計算
@@ -126,11 +127,17 @@ for i=1:size(All_barPixelPoints2,1)
     lamda = -Sol_opt2(3)/(Sol_opt2(1)*Line(1)+Sol_opt2(2)*Line(2)-Line(3));
     All_barCameraPoints = [All_barCameraPoints;lamda*Line];
 end
+%%
 %PCAを用いた最適直線のあてはめ
 [coeff,score,roots] = pca(All_barCameraPoints);
 dirVect2 = coeff(:,1);
 meanbarCam = mean(All_barCameraPoints,1);
 %dievec:直線の方向ベクトル，meanbarcam:通る点
+% %外れ値の検出とそれを除いた直線を求める
+Optimal_barCamPoints = LineOptimization(dirVect2,meanbarCam,All_barCameraPoints,10);
+[coeff,score,roots] = pca(Optimal_barCamPoints);
+dirVect2 = coeff(:,1);
+meanbarCam = mean(All_barCameraPoints,1);
 %%
 %csvへカメラパラメータ，2平面共通直線，棒の直線の出力
 csvfile ='cameraplaneparams.csv';
@@ -155,10 +162,10 @@ fprintf(fid,'%f,',meanbarCam);
 fprintf(fid,'\n');
 fclose(fid);
 %%
-%画像出力のデバック
-X = readimage(images2,1);
-imshow(X)
-impixelinfo;
+% %画像出力のデバック
+% X = readimage(images2,1);
+% imshow(X)
+% impixelinfo;
 
 %%
 %2平面，平面共通直線，棒直線の可視化
@@ -192,3 +199,4 @@ t2 = [-10000 10000];
 endpts2 = [planePoint+t2(1)*dirVect';planePoint+t2(2)*dirVect'];
 plot3(endpts2(:,1),endpts2(:,2),endpts2(:,3),'r-');
 ylim([minY maxY]);
+view(dirVect);

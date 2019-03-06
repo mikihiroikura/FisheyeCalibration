@@ -43,13 +43,21 @@ function [planesol,Optimal_cameraPoints,barPointsCam,All_barPixelPoints] = Camer
     %レーザーが作る平面z=ax+by+cの最小2乗平面を計算する
     func = @(param)CalcLSMPlane2(param,All_laserPointsCam);
     flg = 1;
+    false_cnt = 1;
     while flg
-        x0 = -rand(1,3)*0.01;
+        x0 = -rand(1,3)*0.01*false_cnt;
         options = optimset('Display','iter','PlotFcns',@optimplotfval,'MaxFunEvals',1000);
         [Sol,fval,exitflag,output] = fminsearch(func,x0,options);
-        if exitflag==1&&fval<1000
+        if exitflag==1&&fval<3000
             flg = 0;
+            false_cnt = 1;
+        else
+            false_cnt = false_cnt +1;
         end
+        if false_cnt >10
+            break;
+        end
+        
     end
     Optimal_cameraPoints = All_laserPointsCam;
 %     Optimal_cameraPoints = PlaneOptimization2(Sol,All_laserPointsCam,3);

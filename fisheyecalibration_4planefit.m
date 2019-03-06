@@ -20,8 +20,8 @@ end
 
 %%
 %あたるレーザーの範囲の指定
-laser = [150,300];
-bar = [385,400];
+laser = [150,350];
+bar = [380,450];
 
 %%
 %まず1セットのLaser_off画像群でカメラパラメータの取得
@@ -36,7 +36,7 @@ all_laserpoint =[];
 lasercnt = [];
 barX = [];
 for i=1:size(all_image_on,2)
-    [plane,laserpoint,barpoint,barpixelpoints] = CameraPlaneBarCalibration2(param,all_image_on{i},laser,bar,0.4,150.0/255.0,0);
+    [plane,laserpoint,barpoint,barpixelpoints] = CameraPlaneBarCalibration2(param,all_image_on{i},laser,bar,150.0/255.0,150.0/255.0,0);
     all_plane = [all_plane;plane];
     all_barpoints = [all_barpoints;barpoint];
     barX = [barX;mean(barpixelpoints(:,1))];
@@ -100,9 +100,6 @@ fprintf(fid,'\n');
 %棒上のLaser群の補間X座標
 fprintf(fid,'%f,',barXp);
 fprintf(fid,'\n');
-%Y0 = 0,Z0 = 200でのX座標補間
-fprintf(fid,'%f,',pcpoint);
-fprintf(fid,'\n');
 %ax+by+cz=1のパラメータ
 fprintf(fid,'%f,',pca);
 fprintf(fid,'\n');
@@ -111,3 +108,10 @@ fprintf(fid,'\n');
 fprintf(fid,'%f,',pcc);
 fprintf(fid,'\n');
 fclose(fid);
+%%
+%画像のデバック出力
+%画像出力デバック
+dirnum = 5;
+picnum = 10;
+imshow(string(all_image_on{dirnum}.Files(picnum)));
+impixelinfo;
